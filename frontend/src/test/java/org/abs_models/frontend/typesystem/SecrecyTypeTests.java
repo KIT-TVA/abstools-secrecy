@@ -102,20 +102,8 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
-    public void passwordFile() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/SecurePasswordFileAnnotated.abs";
-        assertTypeCheckFileOk(fileName);
-    }
-
-    @Test
     public void simpleEvoting() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/passingtests/SimpleEvotingExampleAnnotated.abs";
-        assertTypeCheckFileOk(fileName);
-    }
-
-    @Test
-    public void sumExample() throws Exception {
-        String fileName = "abssamples/SecrecyTypeTests/passingtests/SumExampleAnnotated.abs";
         assertTypeCheckFileOk(fileName);
     }
 
@@ -131,6 +119,7 @@ public class SecrecyTypeTests extends FrontendTest {
     @Test
     public void ifBlockExample() throws Exception {
         //name of the folders and at the end the name of the file
+        //the file with the expected secrecy errors has to have the same name but as a .txt file
         String fileName = "abssamples/SecrecyTypeTests/failingtests/IfBlockExampleAnnotated.abs";
         //trying to get the model of the source code file
         Model m = assertParseFileOk(fileName);
@@ -203,6 +192,22 @@ public class SecrecyTypeTests extends FrontendTest {
     }
 
     @Test
+    public void passwordFile() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/SecurePasswordFileAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
+    public void sumExample() throws Exception {
+        String fileName = "abssamples/SecrecyTypeTests/failingtests/SumExampleAnnotated.abs";
+        Model m = assertParseFileOk(fileName);
+
+        assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
+    }
+
+    @Test
     public void bankingExample1() throws Exception {
         String fileName = "abssamples/SecrecyTypeTests/failingtests/BankingExampleAnnotated1.abs";
         Model m = assertParseFileOk(fileName);
@@ -218,9 +223,12 @@ public class SecrecyTypeTests extends FrontendTest {
         assertEquals(loadExpectedErrors(fileName.replace(".abs", ".txt")), getLinesAndErrors(m.getTypeErrors()));
     }
 
-    //These are helping methods to verify the failing files fail on the exact erros we expect them to
+    //These are helper methods to verify the failing files fail on the exact erros we expect them to
 
-    //Returns a list of the secrecy type errors for a test (it's SemanticConditionList) 
+    /**
+     * @param errorList - the list of type errors that we received for one of the examples
+     * @return - only the secrecy type errors and in this format (LineNumber: Description output)
+     */
     private List<String> getLinesAndErrors(SemanticConditionList errorList) {
         List<String> actual = new LinkedList<String>();
         for (SemanticCondition cond : errorList) {
@@ -234,7 +242,10 @@ public class SecrecyTypeTests extends FrontendTest {
         return actual;
     }
 
-    //Returns true if the ErrorMessage is one of the secrecy type error messages (and thus it is a secrecy type error!)
+    /**
+     * Helper that checks if the output message is one of the secrecy error messages
+     * @return - true if it is a secrecy message (and thus a secrecy type error), false otherwise
+     */
     private boolean isSecrecyError(ErrorMessage msg) {
         return msg == ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO ||
@@ -242,7 +253,12 @@ public class SecrecyTypeTests extends FrontendTest {
                msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH;
     }
 
-    //Reads the expected errors from the specified (.txt) file
+    /**
+     * Readin expected errors from a file with the expectedFilePath to later compare it.
+     * 
+     * @param expectedFilePath - the filepath of the .txt file to readin that contains the expected type errors for a test case
+     * @return - Returns them in a list which we need to compare them to the actual gotten errors for the example
+     */
     private List<String> loadExpectedErrors(String expectedFilePath) throws Exception {
         Path expectedPath = Paths.get("src/test/resources/", expectedFilePath);
         return lines(expectedPath).map(String::trim).filter(line -> !line.isEmpty()).toList();

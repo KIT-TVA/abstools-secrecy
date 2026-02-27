@@ -154,19 +154,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                                 }
                             }
 
-                            Block block = method.getBlock();
-                            for (Stmt stmt : block.getStmtList()) {
-                                if (stmt instanceof VarDeclStmt varDeclStmt) {
-                                    //I thought this would return things llike this
-                                    // methodSomething() {
-                                    //      [Secrecy: High] Bool hasBallotCast = ... 
-                                    // }
-                                    //But it doesn't do that here so wrong !!
-                                    //System.out.println(varDeclStmt);
-                                    String varLevel = extractSecrecyValue(varDeclStmt);
-                                    if(varLevel != null) _secrecy.put(varDeclStmt.getVarDecl(), varLevel);
-                                }
-                            }
                         }
 
                     //4.0
@@ -201,6 +188,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         List<Annotation> annotations = null;
 
+        //TODO check which of these are used at any time
         if (declNode instanceof ParamDecl param) {
             annotations = param.getAnnotationList();
         } else if (declNode instanceof FieldDecl field) {

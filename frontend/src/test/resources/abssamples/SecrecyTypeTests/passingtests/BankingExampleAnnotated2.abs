@@ -1,6 +1,4 @@
-module BankingExample2;
-
-//TODO this example is here the same as the BankingExampleAnnotated1.abs ??
+module BankingExample1;
 
 interface BankAccountI {
   Int getId();
@@ -21,14 +19,17 @@ class BankAccount(Int accountId) implements BankAccountI {
   [Secrecy: High] Int balance = 0;
   Int id = accountId;
 
+  //meant to pass
   Int getId() {
       return id;
   }
 
+  //meant to pass
   [Secrecy: High] Int getBalance() {
       return balance;
   }
 
+  //meant to pass
   Unit depositMoney([Secrecy: High] Int amount) {
       this.balance = this.balance - amount;
   }
@@ -38,19 +39,20 @@ class BankAccount(Int accountId) implements BankAccountI {
 class UserAccount(Int userId, String userPassword) implements UserAccountI {
   Int userID = userId;
   [Secrecy: High] String password = userPassword;
-  Int incorrectLogins = 0;
+  [Secrecy:High] Int incorrectLogins = 0;
   List<BankAccountI> bankAccounts = Nil;
 
-  Bool tryLogin(Int userID,[Secrecy: High] String password) {
+  //meant to pass
+  [Secrecy:High] Bool tryLogin(Int userID,[Secrecy: High] String password) {
     
     Bool userIDCorrect = (this.userID == userID);
-    Bool pwdCorrect = (strlen(this.password) == strlen(password));
-    Int i = 0;
+    [Secrecy:High] Bool pwdCorrect = (strlen(this.password) == strlen(password));
+    [Secrecy:High] Int i = 0;
 
     while(i < strlen(password) && pwdCorrect) {
-      String thisChar = substr(this.password, i, i + 1);
-      String paramChar = substr(password, i, i + 1);
-      Bool charsMatch = (thisChar == paramChar);
+      [Secrecy:High] String thisChar = substr(this.password, i, i + 1);
+      [Secrecy:High] String paramChar = substr(password, i, i + 1);
+      [Secrecy:High] Bool charsMatch = (thisChar == paramChar);
       
       if (!charsMatch) {
           pwdCorrect = False;
@@ -59,7 +61,7 @@ class UserAccount(Int userId, String userPassword) implements UserAccountI {
       i = i + 1;
     }
 
-    Bool incorrectLoginsInRange = (0 <= incorrectLogins && incorrectLogins < 3);
+    [Secrecy:High] Bool incorrectLoginsInRange = (0 <= incorrectLogins && incorrectLogins < 3);
 
     if(userIDCorrect && incorrectLoginsInRange) {
       if (pwdCorrect) {
@@ -71,6 +73,7 @@ class UserAccount(Int userId, String userPassword) implements UserAccountI {
     return userIDCorrect && pwdCorrect && incorrectLoginsInRange;
   }
 
+  //meant to pass
   BankAccountI getBankAccount(Int number) {
     BankAccountI resultAccount = null;
 
@@ -85,6 +88,7 @@ class UserAccount(Int userId, String userPassword) implements UserAccountI {
 class Bank implements BankI {
   List<UserAccountI> userAccounts = Nil;
 
+  //meant to pass
   UserAccountI login(Int userID,[Secrecy: High] String password) {
     UserAccountI accountTried = null;
 

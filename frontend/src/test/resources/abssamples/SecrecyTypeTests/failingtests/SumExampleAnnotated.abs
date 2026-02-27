@@ -4,12 +4,13 @@ class SumExample(List<Int> in_values) {
 
     [Secrecy: High] List<Int> values = in_values;
     
+    //meant to fail | value (should be High) in length(values:High) =>
+    // sum = sum + nth(values) => Leaks i-th element of values to sum (currently unsupported declassification)
     Int getSum() {
         Int sum = 0;
         Int i = 0;
 
-        //This is discussable should only the list reference be High or also each element?
-        //Handling depends on that.
+        //This is discussable should only the list reference be High or also each element? //Handling depends on that.
         while (i < length(values)) {
             sum = sum + nth(values, i);
             i = i+1;

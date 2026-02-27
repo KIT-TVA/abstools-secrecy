@@ -366,11 +366,17 @@ public class SecrecyExpVisitor {
      */
     public String visit(VarOrFieldUse varOrFieldUse) {
 
+        //Todo here is the varOrFieldUse and this is where I need to check for the SumExample's issue
+        //[Secrecy: High] List<Int> values = nil;
+        //while (i < length(values)) {...}
+        //System.out.println(varOrFieldUse);
+
         ASTNode<?> variable = varOrFieldUse.getDecl();
         String secrecy = _secrecy.get(variable);
 
         if (secrecy != null) {
-            return secrecy; //TODO THIS COULD BE A BUG!! SHOULDNT IT GET COMBINED LIKE OTHERS
+            return secrecyLatticeStructure.join(secrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+            //If there was a secrecy found then return it combined with the current pc otherwise combine pc with lowest possible.
         }
 
         return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
@@ -455,6 +461,7 @@ public class SecrecyExpVisitor {
     public String visit(SyncCall syncCall) {
         MethodSig calledMethod = syncCall.getMethodSig();
         //TODO REMOVE ALL BELOW HERE AND
+        //stmtVisitor.visit()
 
         List<ParamDecl> parameterList = calledMethod.getParamList();
         List<PureExp> calledParams = syncCall.getParamList();
@@ -493,6 +500,50 @@ public class SecrecyExpVisitor {
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+    }
+
+    /**
+     * Visit function fnApp expressions.
+     * 
+     * @param fnApp - the expression for which we want to retrieve the secrecylevel.
+     * @return - the join of the secrecylevel of the variable or field and the secrecylevel of the current program point.
+     * if there is no secrecy attached to the variable or field then use the lowest value from the lattice structure.
+     */
+    public String visit(FnApp fnApp) {
+
+        //System.out.println(fnApp);
+
+        List<PureExp> fnAppParameters = fnApp.getParamList();
+
+        //System.out.println(fnAppParameters);
+
+        String secrecy = null;
+
+        for(PureExp fnAppParam : fnAppParameters) {
+            String paramSecrecy = this.visit(fnAppParam);
+            //System.out.println(fnAppParam + " with secrecy: " + paramSecrecy);
+
+            if (secrecy != null) {
+                secrecy = secrecyLatticeStructure.join(secrecy, paramSecrecy);
+            } else {
+                secrecy = paramSecrecy;
+            }
+        }
+
+        //FnApp is defined as: FnApp : PureExp ::= <Name> Param:PureExp* ;
+        //so retrieve the value of the pureExp below! (or if multiple of all of the ones below)
+        //then combine them to one value and with the pc level and return that
+        //or otherwise return min level combined with pc directly
+
+        //ASTNode<?> variable = varOrFieldUse.getDecl();
+        //String secrecy = _secrecy.get(variable);
+        //
+        if (secrecy != null) {
+            return secrecyLatticeStructure.join(secrecy, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        }
+        //
+        //return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        return secrecyLatticeStructure.getMinSecrecyLevel();
     }
 
     /**

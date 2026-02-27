@@ -67,4 +67,7 @@ aspect AddExpVisitor {
   @Override
   public String SyncCall.accept(SecrecyExpVisitor v) {return v.visit(this);}
 
+  @Override
+  public String FnApp.accept(SecrecyExpVisitor v) {return v.visit(this);}
+
 }

@@ -1,1 +1,7 @@
 31:Leakage Error from High: SubAddExp(balance,amount) to Low: balance
+45:Leakage Error from High: EqExp(FnApp(password),FnApp(password)) to Low: pwdCorrect
+49:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: thisChar
+50:Leakage Error from High: FnApp(password,i,AddAddExp(i,IntLiteral(1))) to Low: paramChar
+51:Leakage Error from High: EqExp(thisChar,paramChar) to Low: charsMatch
+54:Leakage Error from High: False() to Low: pwdCorrect
+57:Leakage Error from High: AddAddExp(i,IntLiteral(1)) to Low: i
