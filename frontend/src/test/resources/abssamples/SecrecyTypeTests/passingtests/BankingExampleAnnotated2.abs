@@ -7,12 +7,12 @@ interface BankAccountI {
 }
 
 interface UserAccountI {
-  Bool tryLogin(Int userID,[Secrecy: High] String password);
+  [Secrecy: High] Bool tryLogin(Int userID,[Secrecy: High] String password);
   BankAccountI getBankAccount(Int number);
 }
 
 interface BankI {
-  UserAccountI login(Int userID,[Secrecy: High] String password);
+  [Secrecy: High] UserAccountI login(Int userID,[Secrecy: High] String password);
 }
 
 class BankAccount(Int accountId) implements BankAccountI {
@@ -89,13 +89,13 @@ class Bank implements BankI {
   List<UserAccountI> userAccounts = Nil;
 
   //meant to pass
-  UserAccountI login(Int userID,[Secrecy: High] String password) {
-    UserAccountI accountTried = null;
+  [Secrecy: High] UserAccountI login(Int userID,[Secrecy: High] String password) {
+    [Secrecy: High] UserAccountI accountTried = null;
 
     if (0 <= userID && userID < length(userAccounts)) {
       accountTried = nth(userAccounts, userID);
 
-      Bool loginSuccess = accountTried.tryLogin(userID, password);
+      [Secrecy: High] Bool loginSuccess = accountTried.tryLogin(userID, password);
 
       if (!loginSuccess) {
         accountTried =  null;

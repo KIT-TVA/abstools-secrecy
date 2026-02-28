@@ -114,12 +114,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             for(InterfaceTypeUse implementedInterface : classDecl.getImplementedInterfaceUseList()) {
 
                                 InterfaceDecl usedInterfaceDecl = (InterfaceDecl) implementedInterface.getDecl();
-                                
+
                                 for(MethodSig declaredMethod : usedInterfaceDecl.getBodyList()) {
 
-                                    if(_secrecy.get(declaredMethod) != null){
-                                        declaredInterfaceMethods.add(declaredMethod);
-                                    }                                    
+                                    declaredInterfaceMethods.add(declaredMethod);  
                                 }
 
                             }

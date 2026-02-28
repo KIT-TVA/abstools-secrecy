@@ -3,7 +3,7 @@ module Mini;
 interface AliasingExamplesI {
     Unit setX([Secrecy: High] Int v);
     [Secrecy: High] Int getX();
-    Int secure_1(AliasingExamplesI a, AliasingExamplesI b,[Secrecy: High] Int h);
+    [Secrecy: High] Int secure_1(AliasingExamplesI a, AliasingExamplesI b,[Secrecy: High] Int h);
     Int insecure_1(AliasingExamplesI a, AliasingExamplesI b,[Secrecy: High] Int h);
 
 }
@@ -11,52 +11,28 @@ interface AliasingExamplesI {
 class AliasingExamples implements AliasingExamplesI {
     [Secrecy: High]Int x = 0;
 
+    //meant to pass
     Unit setX([Secrecy: High] Int v) {
         x = v;
         return Unit;
     }
 
+    //meant to pass
     [Secrecy: High] Int getX() {
         return x;
     }
 
+    //meant to pass
     [Secrecy: High] Int secure_1(AliasingExamplesI a, AliasingExamplesI b,[Secrecy: High] Int h) {
         a.setX(h);
         return b.getX();
     }
 
+    //meant to fail | h:High =>
+    //The variable x of the AliasingExamples class has to be High to allow being assigned a high value (like h)
+    //But thus can't be returned for a return that was supposed to be insecure_1():Low
     Int insecure_1(AliasingExamplesI a, AliasingExamplesI b,[Secrecy: High] Int h) {
         a.setX(h);
         return b.getX();
     }
 }
-
-/* Existing error and our handling about it:
-
-Original example idea:
-
-if we set a.x = h and then return b.x that is an error if a == b because then a.x IS b.x (not just equal or so)
-
-Our example:
-
-Our system allows a.x to be assigned a variable h:High only if x is annotated as High (can always be lower but not higher!)
-
-We don't check if a is b but we can have two versions for the test. For one we say if a and b are not the same we annotate it as high and thats ok.
-If not annotated though it would throws the same error as the insecure_1 will.
-
-For the insecure method (I call it on a.setX and a.getX but could be b.getX as well). As long as we have no annotation here we throw the error that we leak!
-
-*/
-
-    //Old mby deletable description
-    /*
-    If we return b.x then that might be low and thats ok but if we return b.x while b.x == a.x then we violate the property!!
-    We have the issue of not having a.x directly but needing the helper methods
-    If we use these helper methods then we need to make setX's parameter high and getX to high if we dont we get error
-    However if we do this then due to getX being high we get an error not only in the a.x == b.x case but also in the other cases
-    This is due to how the exampel works and shows in the way of secure_1 and insecure_1 both having a return leakage!!
-
-    The idea of the KeY example was different to what I know have here!! => KeY looks if x is High and if thats the case we have an issue!!
-    */
-    //Here we should get an error because a.getX() returns : High and thus we return : High but the method has no annotation
-    //meaning assuming : Low => ! => TYPE ERROR VIOLATES RULE
