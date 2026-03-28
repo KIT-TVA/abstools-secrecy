@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 
 - A new function `range(a, b)` in the standard library returns a list
-  of integers ranging from a to b (inclusive).
+  of integers ranging from a to b (inclusive).  This is useful, for
+  example, to write `foreach (i in range(1, 5)) { ... }`.
 
 - The expressions `x implements I` and `x as I` are now implemented by
   the Java backend.
@@ -24,9 +25,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The standard library section of the reference manual now contains
   short usage examples for each function.
 
+- The Java backend now uses virtual threads instead of OS-native
+  threads to implement ABS processes.  This change lets the Java
+  backend run models of similar size as the Erlang backend in terms of
+  number of processes.
+
+- The toolchain now requires Java 25.
+
 ### Removed
 
 ### Fixed
+
+- We now use ChocoSolver 5 instead of the vendored ChocoSolver 2.0
+  library.  The old version used deprecated private APIs that were
+  removed in Java 25, and neither source nor documentation was
+  available.
 
 ## [1.10.2] - 2025-09-10
 
