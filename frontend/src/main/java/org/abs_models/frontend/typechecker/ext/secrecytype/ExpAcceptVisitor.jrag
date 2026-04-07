@@ -5,7 +5,7 @@
  */
 
 /**
- * This aspect adds a method for expressions to accept the visitor to check them for secrecy typeerrors
+ * This aspect adds a method for expressions to accept the visitor to check them for secrecy type errors
  */
 aspect AddExpVisitor {
   public String Exp.accept(SecrecyExpVisitor v) { return v.visit(this); }

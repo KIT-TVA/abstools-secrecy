@@ -77,6 +77,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         secondTypecheckPhasePass(model); 
         
+
+        //todo if there is something I need/want to do as last thing I can/should do it here
+        
         //todo to be removed later
         System.out.println("Print new annotated Values: " + _secrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());

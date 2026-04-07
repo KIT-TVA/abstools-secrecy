@@ -139,8 +139,12 @@ public class SecrecyExpVisitor {
 
         ASTNode<?> target = (Exp) getExp.getChild(0);
         String targetString = target.toString();
+        String varUseSecrecy = null;
 
-        if(target instanceof VarOrFieldUse varUse)targetString = varUse.getName();
+        if(target instanceof VarOrFieldUse varUse) {
+            targetString = varUse.getName();
+            varUseSecrecy = this.visit(varUse);
+        }
         
         Iterator<ProgramCountNode> iter = programConfidentiality.iterator();
         while (iter.hasNext()) {
@@ -151,7 +155,10 @@ public class SecrecyExpVisitor {
         }
 
         stmtVisitor.updateProgramPoint(programConfidentiality);
-        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+
+        String minLevel = secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), varUseSecrecy);
+
+        return secrecyLatticeStructure.join(minLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
     /**
@@ -212,6 +219,10 @@ public class SecrecyExpVisitor {
         List<ParamDecl> parameterList = calledMethod.getParamList();
         List<PureExp> calledParams = syncCall.getParamList();
         int numberOfDefinedParameters = parameterList.getNumChild();
+
+        System.out.println(calledMethod.getName() + " with the call: " + syncCall);
+        //System.out.println("Bodylist: " + calledMethod.getBodyList());
+        //System.out.println("Block: " + calledMethod.getBlock());
         
         if(numberOfDefinedParameters > 0) {
 
