@@ -137,6 +137,8 @@ public enum ErrorMessage {
     SECRECY_LEAKAGE_ERROR_FROM_TO("Leakage Error from %s: %s to %s: %s"),
     SECRECY_LEAKAGE_ERROR_AT_MOST("Leakage is expected to be at most %s but is implemented as %s"),
     SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but was only allowed to be %s at most!"),
+    SECRECY_FNAPP_NOT_EQUAL("The level of the variable %s doesn't match the expected of %s but is %s instead!"),
+    SECRECY_LEVEL_NON_EXISTANT("The level %s doesn't match any of the values from the lattice!"),
     WRONG_COST_ANNOTATION_TYPE("Wrong type %s in cost annotation, should be a number."),
     AMBIGIOUS_USE("The use of %s is ambigious. It can refer to the following definitions: %s."),
     WRONG_SCHEDULER_ANNOTATION_TYPE("Invalid scheduler expression, should be function invocation of type ABS.Scheduler.Process and first argument of type List<ABS.Scheduler.Process>."),

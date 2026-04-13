@@ -66,6 +66,7 @@ export map, filter, foldl, foldr;
 // Functional breakpoints
 // TODO: find out where they are defined / used
 export watch, watchEx;
+export secrecy;
 
 // Input/Output
 export println, print, readln;
@@ -655,6 +656,10 @@ data Annotation = TypeAnnotation;
 
 [TypeAnnotation]
 data Secrecy;
+
+// somewhere with the other pure functions
+def Unit secrecy<T, U>(T x, String y) = builtin;
+//def Unit secrecy<T>(T x) = builtin;
 
 [TypeAnnotation]
 data LocationType = Far | Near | Somewhere | Infer;

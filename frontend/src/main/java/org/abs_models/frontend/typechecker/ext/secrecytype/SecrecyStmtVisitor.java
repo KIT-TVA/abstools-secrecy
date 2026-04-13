@@ -14,6 +14,7 @@ import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.analyser.SemanticConditionList;
 
+
 /**
  * This class is used to extract the secrecylevels for the different statements and enforce rules with it.
  */
@@ -213,6 +214,8 @@ public class SecrecyStmtVisitor {
         }
     }
 
+    //TODO 1. Update the documentation for this to contain a description of the FnApp addition I wrote
+    //TODO 2. Once the differentiation between max/curr secrecy is added we want to return the level for the variable stored in curr
     /**
      * Visit function for expression statements. 
      * For an expression statement we want the expression below to be handled by the expression visitor.
@@ -222,7 +225,39 @@ public class SecrecyStmtVisitor {
         Exp expStmtChild = expressionStmt.getExp();
         expStmtChild.accept(ExpVisitor);
         
-    } 
+        if(!containsFnAppHelper(expStmtChild)) {
+            return;
+        }
+
+        FnApp possibleSecrecyFnApp = getFnAppHelper(expStmtChild);
+        
+        if(possibleSecrecyFnApp.getName().equals("secrecy")) {
+            
+            List<PureExp> fnAppParameters = possibleSecrecyFnApp.getParamList();
+            
+            if(fnAppParameters.getNumChild() == 2 && fnAppParameters.getChild(0) instanceof PureExp secPureExp) {
+                String searchedVariable = secPureExp.toString();
+                String secrecyFnAppValue = secPureExp.accept(ExpVisitor);
+                    
+                if (secrecyFnAppValue == null) {
+                    secrecyFnAppValue = secrecyLatticeStructure.getMinSecrecyLevel();
+                }
+
+                String expectedLevelOfVariable = fnAppParameters.getChild(1).toString();
+                expectedLevelOfVariable = expectedLevelOfVariable.replace("StringLiteral","").replace("(","").replace(")","");
+
+                if(!secrecyLatticeStructure.isValidLabel(expectedLevelOfVariable)) {
+                    //If the level is not valid then return that
+                    errors.add(new TypeError(expressionStmt, ErrorMessage.SECRECY_LEVEL_NON_EXISTANT, expectedLevelOfVariable));
+                } else {
+                    if(!expectedLevelOfVariable.equals(secrecyFnAppValue)) {
+                    //If the level is valid but it's not the same as the level of the exp return an error not equal!
+                    errors.add(new TypeError(expressionStmt, ErrorMessage.SECRECY_FNAPP_NOT_EQUAL, searchedVariable.toString(), expectedLevelOfVariable, secrecyFnAppValue));
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Visit function for varDeclStmt statements.
@@ -328,5 +363,41 @@ public class SecrecyStmtVisitor {
      */
     public void updateProgramPoint(LinkedList<ProgramCountNode> newConfidentiality) {
         programConfidentiality = newConfidentiality;
+    }
+
+    public boolean containsFnAppHelper(Exp expression) {
+
+        if(expression instanceof FnApp) {
+            return true;
+        }
+
+        if(expression instanceof Unary unaryExp) {
+            containsFnAppHelper(unaryExp);
+        } else if(expression instanceof Binary binaryExp) {
+            if (containsFnAppHelper(binaryExp.getLeft()) || (containsFnAppHelper(binaryExp.getRight()))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public FnApp getFnAppHelper(Exp expression) {
+
+        if(expression instanceof FnApp fnapp) {
+            return fnapp;
+        }
+
+        if(expression instanceof Unary unaryExp) {
+            getFnAppHelper(unaryExp);
+        } else if(expression instanceof Binary binaryExp) {
+            if (containsFnAppHelper(binaryExp.getLeft())) {
+                getFnAppHelper(binaryExp.getRight());
+            } else if (containsFnAppHelper(binaryExp.getRight())) {
+                getFnAppHelper(binaryExp.getRight());
+            }
+        }
+
+        return null;
     }
 }

@@ -220,7 +220,8 @@ public class SecrecyExpVisitor {
         List<PureExp> calledParams = syncCall.getParamList();
         int numberOfDefinedParameters = parameterList.getNumChild();
 
-        System.out.println(calledMethod.getName() + " with the call: " + syncCall);
+        //The Bodylist and Block lead to error meaning they probably changed now?
+        //System.out.println(calledMethod.getName() + " with the call: " + syncCall);
         //System.out.println("Bodylist: " + calledMethod.getBodyList());
         //System.out.println("Block: " + calledMethod.getBlock());
         
