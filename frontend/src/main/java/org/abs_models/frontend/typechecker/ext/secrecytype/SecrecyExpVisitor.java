@@ -168,39 +168,39 @@ public class SecrecyExpVisitor {
      * @return - the join of the secrecylevel of the returnvalue of the called method and the secrecylevel of the current program point.
      */
     public String visit(AsyncCall asyncCall) {
-        MethodSig calledMethod = asyncCall.getMethodSig();
-        //TODO REMOVE ALL BELOW HERE AND
-
-        List<ParamDecl> parameterList = calledMethod.getParamList();
-        List<PureExp> calledParams = asyncCall.getParamList();
-        int numberOfDefinedParameters = parameterList.getNumChild();
         
-        if(numberOfDefinedParameters > 0) {
+        String secrecyLevel = null;
+        
+        if (!(asyncCall.getMethodSig() == null)) {
+        
 
-            //System.out.println(calledMethod.getName() + " with the call: " + asyncCall + "\n"); //TODO REMOVE THIS LATER
-            //System.out.println(parameterList + "\n" + calledParams);
+            MethodSig calledMethod = asyncCall.getMethodSig();
 
-            for(int i = 0; i < parameterList.getNumChild(); i++) {
-                
-                String definedSecrecy = _secrecy.get(parameterList.getChild(i));
-                String calledSecrecy = this.visit(calledParams.getChild(i));
-                if(definedSecrecy == null) { 
-                    definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
-                }
-                
-                //System.out.println("Child " + i + " is defined " + parameterList.getChild(i) + " and called " + calledParams.getChild(i));
-                //System.out.println("defined is: " + definedSecrecy + ", called is: " + calledSecrecy);
-                
-                Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
-                
-                if(!(definedSecrecy.equals(calledSecrecy)||calledSecrecySet.contains(definedSecrecy))) {
-                    errors.add(new TypeError(asyncCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, definedSecrecy));
+            List<ParamDecl> parameterList = calledMethod.getParamList();
+            List<PureExp> calledParams = asyncCall.getParamList();
+            int numberOfDefinedParameters = parameterList.getNumChild();
+
+            if(numberOfDefinedParameters > 0) {
+
+                for(int i = 0; i < parameterList.getNumChild(); i++) {
+
+                    String definedSecrecy = _secrecy.get(parameterList.getChild(i));
+                    String calledSecrecy = this.visit(calledParams.getChild(i));
+                    if(definedSecrecy == null) { 
+                        definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
+                    }
+
+                    Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
+
+                    if(!(definedSecrecy.equals(calledSecrecy)||calledSecrecySet.contains(definedSecrecy))) {
+                        errors.add(new TypeError(asyncCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, definedSecrecy));
+                    }
                 }
             }
-        }
 
-        //ABOVE HERE THAT ISN'T FUNCTIONAL
-        String secrecyLevel = _secrecy.get(calledMethod);
+            secrecyLevel = _secrecy.get(calledMethod);
+        }
+        
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }

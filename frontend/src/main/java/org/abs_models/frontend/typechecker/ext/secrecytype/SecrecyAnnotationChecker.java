@@ -135,6 +135,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
                             
+//                            if (method.getMethodSig() == null) {
+//                                return;
+//                            }
+//
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
@@ -239,8 +243,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
                     if (decl instanceof ClassDecl classDecl) {
+                        //For each class 
                         for (MethodImpl method : classDecl.getMethods()) {
+                            //For each method of that class
+                            //TODO probably it's best to start a check here and after each method check we have to reset the current to be the same as max
                             Block block = method.getBlock();
+                            //Get the block and then perform a check on each statement in the block!
                             for (Stmt stmt : block.getStmtList()) {
                                 stmt.accept(visitor);
                             }
