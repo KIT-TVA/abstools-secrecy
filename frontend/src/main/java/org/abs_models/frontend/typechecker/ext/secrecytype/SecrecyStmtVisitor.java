@@ -21,9 +21,17 @@ import org.abs_models.frontend.analyser.SemanticConditionList;
 public class SecrecyStmtVisitor {
 
     /**
-     * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
+     * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
+     * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
      */
-    private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
+    private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
+
+    //todo current secrecy is here 
+    /**
+     * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
+     * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
+     */
+    private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
     /**
      * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
@@ -47,18 +55,19 @@ public class SecrecyStmtVisitor {
 
     /**
      * Constructor for the SecrecyStmtVisitor.
-     * @param _secrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
+     * @param _maxSecrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
      * @param secrecyLatticeStructure - the datastructure that holds the information for the lattice. 
      * @param errors - the error list that we can add typeerrors to.
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      */
-    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality) {
-        this._secrecy = _secrecy;
+    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _maxSecrecy, HashMap<ASTNode<?>,String> _currentSecrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality) {
+        this._maxSecrecy = _maxSecrecy;
+        this._currentSecrecy = _currentSecrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
+        ExpVisitor = new SecrecyExpVisitor(_maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
     }
 
     /**
@@ -110,15 +119,36 @@ public class SecrecyStmtVisitor {
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
-        String LHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
-        String RHSsecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        if(RhsExp instanceof Call calling) {
+            System.out.println("Call: " + calling);
+            //TODO get the name of the class and the name of the method
+            //Then get the method implementation
+            //Then perform a recursive check on the method implementation 
+            //if there is no error added return nothing
+            //If the called method is insecure => add an insecure error to the method containing the call
+            //Careful the call may NOT ONLY BE WRITTEN HERE => BUT ALSO IN AN EXPRSTMT
+        }
 
-        if(_secrecy.get(LHS) != null)LHSsecLevel = _secrecy.get(LHS);
-        if(RhsExp.accept(ExpVisitor) != null)RHSsecLevel = RhsExp.accept(ExpVisitor);
+        String minSecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        String LHSsecLevel = minSecLevel;
+        String RHSsecLevel = minSecLevel;
+
+        String possibleLHSLevel = _maxSecrecy.get(LHS);
+        String possibleRhsLevel = RhsExp.accept(ExpVisitor);
+
+        if(possibleLHSLevel != null)LHSsecLevel = possibleLHSLevel;
+        if(possibleRhsLevel != null)RHSsecLevel = possibleRhsLevel;
+        
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
+            return;
+        }
+
+        //Update the current secrecy level if it has a max level != to the min secrecy level
+        if (!LHSsecLevel.equals(minSecLevel)) {
+            _currentSecrecy.put(LHS, RHSsecLevel);
         }
     }
 
@@ -132,6 +162,7 @@ public class SecrecyStmtVisitor {
         
         ASTNode<?> returnExp = returnStmt.getChild(1);
         ASTNode<?> parentNode = returnStmt.getParent();
+
         String returnDefinitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         String returnActualLevel = secrecyLatticeStructure.getMinSecrecyLevel();
 
@@ -142,13 +173,15 @@ public class SecrecyStmtVisitor {
         if((parentNode instanceof MethodImpl methodImpl)) {
 
             MethodSig methodSig = methodImpl.getMethodSig();
+            String possibleMethodSigSecrecy = _maxSecrecy.get(methodSig);
 
-            if(_secrecy.get(methodSig) != null)returnDefinitionLevel = _secrecy.get(methodSig);
+            if(possibleMethodSigSecrecy != null)returnDefinitionLevel = possibleMethodSigSecrecy;
         }
 
         if(returnExp instanceof Exp exp) {
 
             if(exp.accept(ExpVisitor) != null)returnActualLevel = exp.accept(ExpVisitor);
+
         }
 
         Set<String> methodReturnSet = secrecyLatticeStructure.getSetForSecrecyLevel(returnActualLevel);
@@ -289,10 +322,14 @@ public class SecrecyStmtVisitor {
                             return;
                         }
 
+                        //TODO about this one I am not completly sure if thats right
+                        //1. Asma thought I had an open issue and it might have been the vardeclstmt
+                        //2. In this branch the _currentSecrecy got added and the old became _maxSecrecy which now is also used below here
+                        //Requires testing but need to ensure it should be max and not current below!!!
                         //System.out.println("HERE NOW WORKS?"+varDeclStmt);
                         //System.out.println("Levelname: " + levelName);
                         lhsLevel = levelName;
-                        if(levelName != null)_secrecy.put(varDecl, levelName);
+                        if(levelName != null)_maxSecrecy.put(varDecl, levelName);
                         break;
                     }
                 }

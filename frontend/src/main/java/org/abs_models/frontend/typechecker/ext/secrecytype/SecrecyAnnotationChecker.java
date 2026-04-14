@@ -22,12 +22,17 @@ import org.abs_models.frontend.ast.*;
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     /**
-     * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
+     * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
+     * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
      */
-    private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
+    private HashMap<ASTNode<?>,String> _maxSecrecy = new HashMap<>();
 
-    //todo is an idea for a current secrecylevel storage
-    //private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
+    //todo current secrecy is here 
+    /**
+     * Stores mappings between ASTNode's (declarations) and the assigned current secrecy values.
+     * Meaning e.g. a variable may hold a vlaue smaller than it's max secrecy value which would allow certain actions. 
+     */
+    private HashMap<ASTNode<?>,String> _currentSecrecy = new HashMap<>();
     
     /**
      * Contains the secrecy lattice either given by the user or a default. (default is: Low < High)
@@ -73,7 +78,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         firstExtractionPhasePass(model); 
 
-        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
+        visitor = new SecrecyStmtVisitor(_maxSecrecy, _currentSecrecy, secrecyLatticeStructure, errors, programConfidentiality);
 
         secondTypecheckPhasePass(model); 
         
@@ -81,7 +86,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         //todo if there is something I need/want to do as last thing I can/should do it here
         
         //todo to be removed later
-        System.out.println("Print new annotated Values: " + _secrecy.toString());
+        System.out.println("Print new annotated Values (MAX): " + _maxSecrecy.toString());
+        System.out.println("Print new annotated Values (CURR): " + _currentSecrecy.toString());
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
         System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
@@ -129,7 +135,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         //2.
                         for(FieldDecl fieldDecl : classDecl.getFields()) {
                             String level = extractSecrecyValue(fieldDecl);
-                            if(level != null)_secrecy.put(fieldDecl, level);
+                            if(level != null)_maxSecrecy.put(fieldDecl, level);
                         }
                         
                         //3.
@@ -139,12 +145,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                             //3.1
                             String Returnlevel = extractSecrecyValue(method.getMethodSig());
-                            if(Returnlevel != null)_secrecy.put(method.getMethodSig(), Returnlevel);
+                            if(Returnlevel != null)_maxSecrecy.put(method.getMethodSig(), Returnlevel);
 
                             //3.2
                             for(ParamDecl parameter : method.getMethodSig().getParamList()) {
                                 String Parameterlevel = extractSecrecyValue(parameter);
-                                if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
+                                if(Parameterlevel != null)_maxSecrecy.put(parameter, Parameterlevel);
                             }
 
                             //3.3
@@ -163,18 +169,19 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                             
                             //4.1
                             String Returnlevel = extractSecrecyValue(methodSig);
-                            if(Returnlevel != null)_secrecy.put(methodSig, Returnlevel);
+                            if(Returnlevel != null)_maxSecrecy.put(methodSig, Returnlevel);
 
                             //4.2
                             for(ParamDecl parameter : methodSig.getParamList()) {
                                 String Parameterlevel = extractSecrecyValue(parameter);
-                                if(Parameterlevel != null)_secrecy.put(parameter, Parameterlevel);
+                                if(Parameterlevel != null)_maxSecrecy.put(parameter, Parameterlevel);
                             }
                         }
                     }
                 }
             }
         }
+        _currentSecrecy = new HashMap<>(_maxSecrecy);
     }
 
     /**
@@ -239,6 +246,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
                     if (decl instanceof ClassDecl classDecl) {
+                        //TODO this is to "later" reset the current secrecy before we check the next method
+                        //_currentSecrecy = new HashMap<>(_maxSecrecy);
                         for (MethodImpl method : classDecl.getMethods()) {
                             Block block = method.getBlock();
                             for (Stmt stmt : block.getStmtList()) {
@@ -318,13 +327,13 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      */
     private void checkRespectingSecrecyLevels(MethodSig implementation, MethodSig definition) {
 
-        String definitionLevel = _secrecy.get(definition);
+        String definitionLevel = _maxSecrecy.get(definition);
         
         if(definitionLevel == null) {
             definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         }
         
-        String implementationLevel = _secrecy.get(implementation);
+        String implementationLevel = _maxSecrecy.get(implementation);
         
         if(implementationLevel == null) {
             implementationLevel = secrecyLatticeStructure.getMinSecrecyLevel();
@@ -341,8 +350,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
                 if(definitionParam.getName().equals(implementationParam.getName())){
                     
-                    implementationLevel = _secrecy.get(implementationParam);
-                    definitionLevel = _secrecy.get(definitionParam);
+                    implementationLevel = _maxSecrecy.get(implementationParam);
+                    definitionLevel = _maxSecrecy.get(definitionParam);
 
                     if(definitionLevel == null) {
                         definitionLevel = secrecyLatticeStructure.getMinSecrecyLevel();
