@@ -161,12 +161,13 @@ public class SecrecyExpVisitor {
         return secrecyLatticeStructure.join(minLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
     }
 
+    /*
     /**
      * Visit function for async call expressions.
      * 
      * @param asyncCall - the expression for which we want to retrieve the secrecylevel.
      * @return - the join of the secrecylevel of the returnvalue of the called method and the secrecylevel of the current program point.
-     */
+     * //TODO missing /
     public String visit(AsyncCall asyncCall) {
         
         String secrecyLevel = null;
@@ -210,25 +211,15 @@ public class SecrecyExpVisitor {
      * 
      * @param syncCall - the expression for which we want to retrieve the secrecylevel.
      * @return - the join of the secrecylevel of the returnvalue of the called method and the secrecylevel of the current program point.
-     */
+     * //TODO missing /
     public String visit(SyncCall syncCall) {
-        MethodSig calledMethod = syncCall.getMethodSig();
-        //TODO REMOVE ALL BELOW HERE AND
-        //stmtVisitor.visit()
 
+        MethodSig calledMethod = syncCall.getMethodSig();
         List<ParamDecl> parameterList = calledMethod.getParamList();
         List<PureExp> calledParams = syncCall.getParamList();
         int numberOfDefinedParameters = parameterList.getNumChild();
 
-        //The Bodylist and Block lead to error meaning they probably changed now?
-        //System.out.println(calledMethod.getName() + " with the call: " + syncCall);
-        //System.out.println("Bodylist: " + calledMethod.getBodyList());
-        //System.out.println("Block: " + calledMethod.getBlock());
-        
         if(numberOfDefinedParameters > 0) {
-
-            //System.out.println(calledMethod.getName() + " with the call: " + syncCall + "\n"); //TODO REMOVE THIS LATER
-            //System.out.println(parameterList + "\n" + calledParams);
 
             for(int i = 0; i < parameterList.getNumChild(); i++) {
                 
@@ -238,26 +229,66 @@ public class SecrecyExpVisitor {
                     definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
                 }
                 
-                //System.out.println("Child " + i + " is defined " + parameterList.getChild(i) + " and called " + calledParams.getChild(i));
-                //System.out.println("defined is: " + definedSecrecy + ", called is: " + calledSecrecy);
-                
                 Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
                 
                 if(!(definedSecrecy.equals(calledSecrecy)||calledSecrecySet.contains(definedSecrecy))) {
+                    //TODO only add the error if we hadn't done that already? (Maybe due to how I check the methods)
                     errors.add(new TypeError(syncCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, definedSecrecy));
                 }
             }
-            
-            //TODO 1: Fix the probably existing error(s) with local variables
-                //1.1: Does it work over the local variables declaration - I Believe so
-                //1.2: Do we improve runtime by removing it before we exit a method we checked / or not store it at all in the same list and keep a temp list - no we don't yet
-                //1.3: Does the retrival work for local variables - seems like it
         }
 
-        //ABOVE HERE THAT ISN'T FUNCTIONAL
         String secrecyLevel = _secrecy.get(calledMethod);
         if(secrecyLevel == null) secrecyLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         return secrecyLatticeStructure.join(secrecyLevel, secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+    }
+
+    /**
+     * Visit function for call expressions.
+     * 
+     * @param functionCall - the expression for which we want to retrieve the secrecylevel.
+     * @return - the join of the secrecylevel of the returnvalue of the called method and the secrecylevel of the current program point.
+     */
+    public String visit(Call functionCall) {
+        
+        String secrecyLevel = null;
+        String listLevel = secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
+        
+        if (!(functionCall.getMethodSig() == null)) {
+        
+            MethodSig calledMethod = functionCall.getMethodSig();
+
+            List<ParamDecl> parameterList = calledMethod.getParamList();
+            List<PureExp> calledParams = functionCall.getParamList();
+            int numberOfDefinedParameters = parameterList.getNumChild();
+
+            if(numberOfDefinedParameters > 0) {
+
+                for(int i = 0; i < parameterList.getNumChild(); i++) {
+
+                    String definedSecrecy = _secrecy.get(parameterList.getChild(i));
+                    String calledSecrecy = this.visit(calledParams.getChild(i));
+
+                    if(definedSecrecy == null) { 
+                        definedSecrecy = secrecyLatticeStructure.getMinSecrecyLevel();
+                    }
+
+                    Set<String> calledSecrecySet = secrecyLatticeStructure.getSetForSecrecyLevel(calledSecrecy);
+
+                    if(!(definedSecrecy.equals(calledSecrecy) || calledSecrecySet.contains(definedSecrecy))) {
+                        errors.add(new TypeError(functionCall, ErrorMessage.SECRECY_PARAMETER_TO_HIGH, calledSecrecy, parameterList.getChild(i).getName(), definedSecrecy));
+                    }
+                }
+            }
+
+            secrecyLevel = _secrecy.get(calledMethod);
+            
+            if (secrecyLevel != null) {
+                return secrecyLatticeStructure.join(secrecyLevel, listLevel);
+            }
+        }
+
+        return listLevel;
     }
 
     /**
