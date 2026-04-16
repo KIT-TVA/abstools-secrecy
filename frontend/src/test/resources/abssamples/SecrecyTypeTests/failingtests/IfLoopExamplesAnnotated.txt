@@ -1,4 +1,4 @@
-12:Calls method with parameter of secrecy level High but was only allowed to be Low at most!
+12:Calls method with parameter of secrecy level High but x was only allowed to be Low at most!
 63:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
 68:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
 76:Leakage Error from High: AddAddExp(low,IntLiteral(1)) to Low: low
