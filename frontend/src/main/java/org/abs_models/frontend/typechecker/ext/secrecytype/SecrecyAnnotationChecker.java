@@ -22,6 +22,11 @@ import org.abs_models.frontend.ast.*;
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     /**
+     * Stores all methods for each class and information about if they are already checked and/or if they held (were secure).
+     */
+    private LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
+
+    /**
      * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
      */
     private HashMap<ASTNode<?>,String> _secrecy = new HashMap<>();
@@ -85,6 +90,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
         System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
+        System.out.println("Print all methods in from all classes:" + methodList);
     }
 
     /**
@@ -134,6 +140,8 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
+
+                            methodList.add(new SecrecyMethod(classDecl, method));
                             
 //                            if (method.getMethodSig() == null) {
 //                                return;
