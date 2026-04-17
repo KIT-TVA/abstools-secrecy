@@ -26,6 +26,12 @@ public class SecrecyMethod {
     SecrecyMethod (ClassDecl parentClassOfMethod, MethodImpl methodNode) {
         this.parentClassOfMethod = parentClassOfMethod;
         this.methodNode = methodNode;
+        this.isChecked = false;
+        this.isSecure = true;
+    }
+
+    public MethodImpl getMethodNode() {
+        return methodNode;
     }
 
     public boolean getIsChecked() {
@@ -42,5 +48,21 @@ public class SecrecyMethod {
 
     public void setIsSecure(boolean isSecure) {
         this.isSecure = isSecure;
+    }
+
+    /**
+     * Custom implementation of the toString() method
+     * @return - returns the string in the form ClassName.MethodName
+     */
+    public String toString() {
+        return parentClassOfMethod.getName() + "." + methodNode.getMethodSig().getName();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        SecrecyMethod other = (SecrecyMethod) obj;
+        return this.methodNode == other.methodNode;
     }
 }

@@ -24,7 +24,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Stores all methods for each class and information about if they are already checked and/or if they held (were secure).
      */
-    private LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
+    private static LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
@@ -247,6 +247,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */
     private void secondTypecheckPhasePass(Model model){
+        /*
         for (CompilationUnit cu : model.getCompilationUnits()) {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
@@ -263,6 +264,30 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         }
                     }
                 }
+            }
+        }*/
+       //This should now be replaceable by instead checking each method in the methodList
+        for (SecrecyMethod methodToCheck : methodList) {
+            if(!methodToCheck.getIsChecked()) {
+
+                MethodImpl methodToCheckImpl = methodToCheck.getMethodNode();
+                MethodSig methodToCheckSig = methodToCheckImpl.getMethodSig();
+                String methodToCheckName = methodToCheckSig.getName();
+                int errorCountBefore = errors.getErrorCount();
+                //System.out.println("Error Count before checking: " + methodToCheckName + ":" + errorCountBefore);
+
+                Block methodToCheckBlock = methodToCheckImpl.getBlock();
+                methodToCheckBlock.accept(visitor);
+                
+                int errorCountAfter = errors.getErrorCount();
+                //System.out.println("Error Count after checking: " + methodToCheckName + ":" + errorCountAfter);
+                if(errorCountAfter == errorCountBefore) {
+                    methodToCheck.setIsSecure(true);
+                } else {
+                    methodToCheck.setIsSecure(false);
+                    System.out.println(methodToCheck);
+                }
+                methodToCheck.setIsChecked(true);
             }
         }
     }
@@ -378,6 +403,23 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }
+    }
+
+    public static void checkIfMethodCallsAnInsecureMethod(Call functionCall) {
+        //Need to find the called method in the list
+            //If it wasn't checked yet evaluate that method first? 
+            //Otherwise
+                //if the called method is secure = ignore
+                //else if the called method is insecure = add an error
+        ASTNode callee = functionCall.getCallee();
+        System.out.println("CALLEE: " + callee);
+
+        ASTNode callee = functionCall.getCallee();
+        System.out.println("CALLEE: " + callee);
+    }
+
+    public static LinkedList<SecrecyMethod> getMethodListHelper() {
+        return methodList;
     }
 }
 

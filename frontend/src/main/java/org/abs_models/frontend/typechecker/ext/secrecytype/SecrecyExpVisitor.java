@@ -262,6 +262,9 @@ public class SecrecyExpVisitor {
             List<PureExp> calledParams = functionCall.getParamList();
             int numberOfDefinedParameters = parameterList.getNumChild();
 
+            //if we call an insecure method we have to add an error to this method!!
+            SecrecyAnnotationChecker.checkIfMethodCallsAnInsecureMethod(functionCall);
+            
             if(numberOfDefinedParameters > 0) {
 
                 for(int i = 0; i < parameterList.getNumChild(); i++) {
