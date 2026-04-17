@@ -24,6 +24,7 @@ class MiniExamplesLecture {
         }
     }
 
+    //meant to pass for flow-sensitive analysis because h = 0 sets current of h to Low and Low:l = Low:high is allowed
     Unit m_4() {
         h=0;
         l=h;
