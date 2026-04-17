@@ -3,14 +3,12 @@
 12:Leakage Error from High: IntLiteral(2) to Low: l
 20:Leakage Error from High: IntLiteral(1) to Low: l
 20:Leakage Error from High: IntLiteral(2) to Low: l
-26:Leakage Error from High: h to Low: l
 32:Leakage Error from High: h to Low: l
 37:Leakage Error from High: IntLiteral(2) to Low: l
 37:Leakage Error from High: IntLiteral(2) to Low: l
 41:Leakage Error from High: SubAddExp(h,h) to Low: l
 45:Leakage Error from High: h to Low: l
 57:Leakage Error from High: h to Low: l
-63:Leakage Error from High: h to Low: l
 67:Leakage Error from High: h to Low: l
 68:Leakage Error from High: SubAddExp(l,h) to Low: l
 72:Leakage Error from High: h to Low: l
