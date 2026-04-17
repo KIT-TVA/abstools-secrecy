@@ -85,7 +85,7 @@ public class SecrecyExpVisitor {
             return this.visit(fnApp);
         }
 
-        return secrecyLatticeStructure.join(secrecyLatticeStructure.getMinSecrecyLevel(), secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
+        return secrecyLatticeStructure.evaluateListLevel(programConfidentiality);
     }
 
 
