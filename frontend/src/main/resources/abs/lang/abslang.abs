@@ -658,8 +658,7 @@ data Annotation = TypeAnnotation;
 data Secrecy;
 
 // somewhere with the other pure functions
-def Unit secrecy<T, U>(T x, String y) = builtin;
-//def Unit secrecy<T>(T x) = builtin;
+def Unit secrecy<T, U> (T x, String y) = builtin;
 
 [TypeAnnotation]
 data LocationType = Far | Near | Somewhere | Infer;
