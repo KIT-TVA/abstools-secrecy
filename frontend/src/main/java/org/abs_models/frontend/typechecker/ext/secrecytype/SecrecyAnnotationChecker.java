@@ -22,6 +22,11 @@ import org.abs_models.frontend.ast.*;
 public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
     /**
+     * Stores all methods for each class and information about if they are already checked and/or if they held (were secure).
+     */
+    private static LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
+
+    /**
      * Stores mappings between ASTNode's (declarations) and the assigned maximum secrecy values.
      * Meaning e.g. a variable may never hold a value higher than it's value from this _maxSecrecy.
      */
@@ -91,6 +96,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         System.out.println("Print all Levels: " + secrecyLatticeStructure.getSecrecyLevels().toString());
         System.out.println("Print the order" + secrecyLatticeStructure.getLatticeOrder().toString());
         System.out.println("Confidentiality of current program point is: " + programConfidentiality.getLast().getSecrecyLevel());
+        System.out.println("Print all methods in from all classes:" + methodList);
     }
 
     /**
@@ -140,7 +146,19 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         
                         //3.
                         for (MethodImpl method : classDecl.getMethods()) {
+
+                            methodList.add(new SecrecyMethod(classDecl, method));
+
+                            for (Stmt stmt : method.getBlock().getStmtList()) {
+
+                                extractVarDeclStmt(stmt);
+                                
+                            }
                             
+//                            if (method.getMethodSig() == null) {
+//                                return;
+//                            }
+//
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
@@ -181,7 +199,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }
-        _currentSecrecy = new HashMap<>(_maxSecrecy);
+        //_currentSecrecy = new HashMap<>(_maxSecrecy);
     }
 
     /**
@@ -233,6 +251,32 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         return null;
     }
 
+    private void extractVarDeclStmt(Stmt inputStmt) {
+        if(inputStmt instanceof VarDeclStmt localVariable) {
+
+            String localVariableLevel = extractSecrecyValue(localVariable);
+            if(localVariableLevel != null)_maxSecrecy.put(localVariable.getVarDecl(), localVariableLevel);
+            //System.out.println(localVariable);
+
+        } else if (inputStmt instanceof Block blockStmt) {
+
+            for (Stmt stmt : blockStmt.getStmtList()) {
+                extractVarDeclStmt(stmt);
+            }
+
+        } else if (inputStmt instanceof IfStmt ifStmt) {
+
+            extractVarDeclStmt(ifStmt.getThen());
+
+            if(ifStmt.hasElse()) extractVarDeclStmt(ifStmt.getElse());
+
+        } else if (inputStmt instanceof WhileStmt whileStmt) {
+
+            extractVarDeclStmt(whileStmt.getBody());
+
+        }
+    }
+
     /**
      * Second phase which checks for the secrecy typerules.
      * A class satisfies the secrecy typerules if each method of a class satisfies them.
@@ -242,22 +286,55 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
      * @param model - the ABS model on which we want to check the respecting of the secrecy typerules
      */
     private void secondTypecheckPhasePass(Model model){
+        
         for (CompilationUnit cu : model.getCompilationUnits()) {
             for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
                 for (Decl decl : moduleDecl.getDecls()) {
                     if (decl instanceof ClassDecl classDecl) {
+                        //For each class 
                         //TODO this is to "later" reset the current secrecy before we check the next method
                         //_currentSecrecy = new HashMap<>(_maxSecrecy);
                         for (MethodImpl method : classDecl.getMethods()) {
-                            Block block = method.getBlock();
-                            for (Stmt stmt : block.getStmtList()) {
-                                stmt.accept(visitor);
-                            }
+                            _currentSecrecy = new HashMap<>(_maxSecrecy);
+                            visitor.updateCurrentSecrecy(_currentSecrecy);
+                            //For each method of that class
+                            //TODO probably it's best to start a check here and after each method check we have to reset the current to be the same as max
+                            method.getBlock().accept(visitor);
+                            //Get the block and then perform a check on each statement in the block!
+                            //for (Stmt stmt : block.getStmtList()) {
+                            //    stmt.accept(visitor);
+                            //}
                         }
                     }
                 }
             }
         }
+        /*
+       //This should now be replaceable by instead checking each method in the methodList
+        for (SecrecyMethod methodToCheck : methodList) {
+            if(!methodToCheck.getIsChecked()) {
+
+                MethodImpl methodToCheckImpl = methodToCheck.getMethodNode();
+                MethodSig methodToCheckSig = methodToCheckImpl.getMethodSig();
+                String methodToCheckName = methodToCheckSig.getName();
+                int errorCountBefore = errors.getErrorCount();
+                //System.out.println("Error Count before checking: " + methodToCheckName + ":" + errorCountBefore);
+
+                Block methodToCheckBlock = methodToCheckImpl.getBlock();
+                methodToCheckBlock.accept(visitor);
+                
+                int errorCountAfter = errors.getErrorCount();
+                //System.out.println("Error Count after checking: " + methodToCheckName + ":" + errorCountAfter);
+                if(errorCountAfter == errorCountBefore) {
+                    methodToCheck.setIsSecure(true);
+                } else {
+                    methodToCheck.setIsSecure(false);
+                    System.out.println(methodToCheck);
+                }
+                methodToCheck.setIsChecked(true);
+                _currentSecrecy = new HashMap<>(_maxSecrecy);
+            }
+        }*/
     }
 
     /**
@@ -372,5 +449,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
         }
     }
+
 }
 

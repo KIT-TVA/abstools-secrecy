@@ -119,29 +119,23 @@ public class SecrecyStmtVisitor {
         ASTNode<?> LHS = assignStmt.getVar().getDecl();
         Exp RhsExp = assignStmt.getValue();
 
-        if(RhsExp instanceof Call calling) {
-            System.out.println("Call: " + calling);
-            //TODO get the name of the class and the name of the method
-            //Then get the method implementation
-            //Then perform a recursive check on the method implementation 
-            //if there is no error added return nothing
-            //If the called method is insecure => add an insecure error to the method containing the call
-            //Careful the call may NOT ONLY BE WRITTEN HERE => BUT ALSO IN AN EXPRSTMT
-        }
-
         String minSecLevel = secrecyLatticeStructure.getMinSecrecyLevel();
         String LHSsecLevel = minSecLevel;
         String RHSsecLevel = minSecLevel;
 
         String possibleLHSLevel = _maxSecrecy.get(LHS);
-        String possibleRhsLevel = RhsExp.accept(ExpVisitor);
+        String possibleRHSLevel = RhsExp.accept(ExpVisitor);
+
+        //System.out.println("LHS: " + possibleLHSLevel + " should be higher/equal than this RHS: " + possibleRHSLevel);
+        //System.out.println("PC SECRECY: " + secrecyLatticeStructure.evaluateListLevel(programConfidentiality));
 
         if(possibleLHSLevel != null)LHSsecLevel = possibleLHSLevel;
-        if(possibleRhsLevel != null)RHSsecLevel = possibleRhsLevel;
+        if(possibleRHSLevel != null)RHSsecLevel = possibleRHSLevel;
         
         Set<String> LHScontainedIn = secrecyLatticeStructure.getSetForSecrecyLevel(LHSsecLevel);
         
         if(LHScontainedIn.contains(RHSsecLevel)) {
+            //System.out.println("THIS ONES AN ERROR:" + LHSsecLevel + " := " + RHSsecLevel);
             errors.add(new TypeError(assignStmt, ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO, RHSsecLevel, assignStmt.getValue().toString(), LHSsecLevel, assignStmt.getVar().getName()));
             return;
         }
@@ -201,6 +195,7 @@ public class SecrecyStmtVisitor {
     public void visit(IfStmt ifStmt){
 
         Exp condition = ifStmt.getCondition();
+        System.out.println("If-condition: " + condition + " with " + condition.accept(ExpVisitor));
 
         if(condition.accept(ExpVisitor) != null) {
             ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
@@ -300,13 +295,17 @@ public class SecrecyStmtVisitor {
     public void visit(VarDeclStmt varDeclStmt) {
 
         VarDecl varDecl = varDeclStmt.getVarDecl();
-        
+
         //We need to get the level here for the check because we can't find it in the usual list
         //until after this check is performed (I assume)
         //Assume lowest possible value
-        String lhsLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        String lhsLevel = _maxSecrecy.get(varDecl);
+        if (lhsLevel == null) {
+            lhsLevel = secrecyLatticeStructure.getMinSecrecyLevel();
+        }
         
         //If there is an annotation extract it if it's for our secrecy annotation
+        /*
         if (varDeclStmt.getAnnotationList() != null) {
             for (Annotation ann : varDeclStmt.getAnnotationList()) {
                 if (ann instanceof TypedAnnotation typedAnn) {
@@ -334,7 +333,7 @@ public class SecrecyStmtVisitor {
                     }
                 }
             }
-        }
+        }*/
 
         if(varDecl.hasInitExp()){
             Exp initExp = varDecl.getInitExp();
@@ -436,5 +435,10 @@ public class SecrecyStmtVisitor {
         }
 
         return null;
+    }
+
+    public void updateCurrentSecrecy(HashMap<ASTNode<?>, String> newCurrentSecrecy) {
+        this._currentSecrecy = newCurrentSecrecy;
+        ExpVisitor.updateCurrentSecrecy(_currentSecrecy);
     }
 }

@@ -136,7 +136,7 @@ public enum ErrorMessage {
     WRONG_SECRECY_ANNOTATION_VALUE("Wrong value %s in secrecy annotation, this value doesn't exist."),
     SECRECY_LEAKAGE_ERROR_FROM_TO("Leakage Error from %s: %s to %s: %s"),
     SECRECY_LEAKAGE_ERROR_AT_MOST("Leakage is expected to be at most %s but is implemented as %s"),
-    SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but was only allowed to be %s at most!"),
+    SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but %s was only allowed to be %s at most!"),
     SECRECY_FNAPP_NOT_EQUAL("The level of the variable %s doesn't match the expected of %s but is %s instead!"),
     SECRECY_LEVEL_NON_EXISTANT("The level %s doesn't match any of the values from the lattice!"),
     WRONG_COST_ANNOTATION_TYPE("Wrong type %s in cost annotation, should be a number."),

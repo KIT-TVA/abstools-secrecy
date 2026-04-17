@@ -297,11 +297,7 @@ public class ABSBuiltInFunctions {
         return val;
     }
 
-    //TODO HERE
-    //def A watch<A>(A val) = builtin;
-    //def String secrecy<T>(T x) = builtin;
     public static ABSUnit secrecy(Object x, String y) {
-
         return ABSUnit.UNIT;
     }
 
