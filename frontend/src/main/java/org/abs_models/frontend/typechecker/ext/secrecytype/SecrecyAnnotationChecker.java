@@ -405,21 +405,5 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
         }
     }
 
-    public static void checkIfMethodCallsAnInsecureMethod(Call functionCall) {
-        //Need to find the called method in the list
-            //If it wasn't checked yet evaluate that method first? 
-            //Otherwise
-                //if the called method is secure = ignore
-                //else if the called method is insecure = add an error
-        ASTNode callee = functionCall.getCallee();
-        System.out.println("CALLEE: " + callee);
-
-        ASTNode callee = functionCall.getCallee();
-        System.out.println("CALLEE: " + callee);
-    }
-
-    public static LinkedList<SecrecyMethod> getMethodListHelper() {
-        return methodList;
-    }
 }
 
