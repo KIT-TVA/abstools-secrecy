@@ -20,8 +20,7 @@ class MiniExamples {
         if (h>0) {l=1;} else {l=2;}
         l=3;
     }
-
-    //meant to pass for flow-sensitive analysis because h = 0 sets current of h to Low and Low:l = Low:high is allowed
+    //below meant to pass for flow-sensitive analysis because h = 0 sets current of h to Low and Low:l = Low:high is allowed
     Unit secure_p1_3() {
         h=0;
         l=h;
@@ -58,8 +57,7 @@ class MiniExamples {
         l=h;
         l=6;
     }
-
-    //meant to pass for flow-sensitive analysis because h = l sets current of h to Low and Low:l = Low:high is allowed
+    //below meant to pass for flow-sensitive analysis because h = l sets current of h to Low and Low:l = Low:high is allowed
     Unit secure_p2_4() {
         h=l;
         l=h;
