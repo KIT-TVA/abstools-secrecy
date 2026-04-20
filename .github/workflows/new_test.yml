@@ -7,30 +7,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v2
 
     - name: Install Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v2
       with:
-        distribution: 'temurin'
-        java-version: '21'
+         distribution: 'adopt'
+        java-version: '25'
 
     - name: Install Erlang
       uses: erlef/setup-beam@v1
       with:
-        otp-version: '26'
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
+        # version is used for download URL (see https://github.com/gleam-lang/setup-erlang/blob/main/main.sh)
+        # Available versions: see https://www.erlang-solutions.com/downloads/
+        otp-version: '24.0.5'
     - name: Run tests
+      uses: eskatos/gradle-command-action@v1
       env:
         LANG: en_US.UTF-8
-      run: ./gradlew test
-
+      with:
+        arguments: test
     - name: Test Report
       uses: dorny/test-reporter@v1
-      if: success() || failure()
+      if: success() || failure()    # run this step even if previous step failed
       with:
         name: JUnit Tests
         path: '**/test/TEST-*.xml'
