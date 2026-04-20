@@ -133,7 +133,7 @@ public enum ErrorMessage {
     DUPLICATE_VARIABLE("Variable %s is already defined."),
     WRONG_DEADLINE_TYPE("Wrong type %s in deadline annotation, should be ABS.StdLib.Duration."),
     WRONG_SIZE_ANNOTATION_TYPE("Wrong type %s in size annotation, should be a number."),
-    WRONG_SECRECY_ANNOTATION_VALUE("Wrong value %s in secrecy annotation, this value doesn't exist."),
+    SECRECY_WRONG_ANNOTATION_VALUE("Wrong value %s in secrecy annotation, this value doesn't exist."),
     SECRECY_LEAKAGE_ERROR_FROM_TO("Leakage Error from %s: %s to %s: %s"),
     SECRECY_LEAKAGE_ERROR_AT_MOST("Leakage is expected to be at most %s but is implemented as %s"),
     SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but %s was only allowed to be %s at most!"),

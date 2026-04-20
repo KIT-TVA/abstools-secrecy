@@ -317,7 +317,7 @@ public class SecrecyStmtVisitor {
                         String levelName = dataCon.getConstructor();
 
                         if (!secrecyLatticeStructure.isValidLabel(levelName)) {
-                            errors.add(new TypeError(typedAnn, ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE, levelName));
+                            errors.add(new TypeError(typedAnn, ErrorMessage.SECRECY_WRONG_ANNOTATION_VALUE, levelName));
                             return;
                         }
 

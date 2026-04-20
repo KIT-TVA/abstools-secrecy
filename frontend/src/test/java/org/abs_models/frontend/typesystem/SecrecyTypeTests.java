@@ -247,10 +247,12 @@ public class SecrecyTypeTests extends FrontendTest {
      * @return - true if it is a secrecy message (and thus a secrecy type error), false otherwise
      */
     private boolean isSecrecyError(ErrorMessage msg) {
-        return msg == ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE ||
+        return msg == ErrorMessage.SECRECY_WRONG_ANNOTATION_VALUE ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST ||
-               msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH;
+               msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH ||
+               msg == ErrorMessage.SECRECY_FNAPP_NOT_EQUAL ||
+               msg == ErrorMessage.SECRECY_LEVEL_NON_EXISTANT;
     }
 
     /**
