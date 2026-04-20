@@ -1,0 +1,37 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '21'
+
+    - name: Install Erlang
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: '26'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Run tests
+      env:
+        LANG: en_US.UTF-8
+      run: ./gradlew test
+
+    - name: Test Report
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: JUnit Tests
+        path: '**/test/TEST-*.xml'
+        reporter: java-junit
