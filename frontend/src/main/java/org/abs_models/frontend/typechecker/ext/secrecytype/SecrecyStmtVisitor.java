@@ -195,7 +195,7 @@ public class SecrecyStmtVisitor {
     public void visit(IfStmt ifStmt){
 
         Exp condition = ifStmt.getCondition();
-        System.out.println("If-condition: " + condition + " with " + condition.accept(ExpVisitor));
+        //System.out.println("If-condition: " + condition + " with " + condition.accept(ExpVisitor));
 
         if(condition.accept(ExpVisitor) != null) {
             ProgramCountNode ifNode = new ProgramCountNode("ifStmt", condition.accept(ExpVisitor));
