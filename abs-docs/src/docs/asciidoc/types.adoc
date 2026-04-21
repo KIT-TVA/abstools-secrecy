@@ -326,7 +326,7 @@ represents a confidentiality level and the lattice ordering determines which flo
 
 By default, the extension provides a simple lattice:
 
-.Example
+.Default lattice
 [source]
 ----
 Low < High
@@ -335,19 +335,19 @@ Low < High
 A different lattice can be supplied by the user via the --secrecy="<lattice>" compiler option.
 The supplied lattice can take various forms (e.g. linear, partially ordered).
 
-.Example: linear
+.Example: Linear lattice
 [source]
 ----
 Low < Medium < High
 ----
 
-.Example: partially ordered
+.Example: Partially ordered
 [source]
 ----
 Low < Medium, Medium < High
 ----
 
-Any combination of such pairwise orderings is allowed.
+Any combination of such pairwise orderings is allowed however the resulting lattice has to contain unqiue lables for a highest and a lowest secrecy.
 
 
 Developers annotate their models using the secrecy annotations provided by the extension (e.g., on fields, methods, and data types).
@@ -374,6 +374,14 @@ class Addition{
 The example above illustrates that assigning a value of secrecy level a:High to a variable of level b:Low constitutes an information-flow leak.
 The developer can use the checker to ensure that such violations do not occur.
 
-For the full set of rules, see <<secrecy-rules.adoc#,the Secrecy Rules specification>>.
+To verify the secrecy level of an expression equals an expected secrecy level a new function application is provided.
 
-//todo specify which rules or better add a link to somwhere where the rules are specified!!
+.Secrecy FnApp
+[source]
+----
+secrecy(input_expression, "expectedLabelAsString");
+----
+It is an ExpressionStmt and only matches if the input_expression has the expected secrecy label during the frontend run but can be helpful if one needs to ensure the level at a point works as expected.
+It is also used for testing the secrecy extension and ensuring that level evaluation for expressions works as intended. 
+
+For the full set of secrecy type rules, see <<secrecy-rules.adoc#,the Secrecy Rules specification>>.
