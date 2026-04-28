@@ -6,6 +6,7 @@
 package org.abs_models.frontend.typechecker.ext;
 
 import org.abs_models.frontend.ast.*;
+import java.util.Objects;
 
 public class SecrecyMethod {
 
@@ -63,6 +64,11 @@ public class SecrecyMethod {
         if (this == obj) return true;
         if (obj == null || getClass() != obj.getClass()) return false;
         SecrecyMethod other = (SecrecyMethod) obj;
-        return this.methodNode == other.methodNode;
+        return this.parentClassOfMethod == other.parentClassOfMethod && this.methodNode == other.methodNode;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(parentClassOfMethod, methodNode);
     }
 }

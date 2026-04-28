@@ -139,6 +139,7 @@ public enum ErrorMessage {
     SECRECY_PARAMETER_TO_HIGH("Calls method with parameter of secrecy level %s but %s was only allowed to be %s at most!"),
     SECRECY_FNAPP_NOT_EQUAL("The level of the variable %s doesn't match the expected of %s but is %s instead!"),
     SECRECY_LEVEL_NON_EXISTANT("The level %s doesn't match any of the values from the lattice!"),
+    SECRECY_CALLING_INSECURE_METHOD("The call is calling an insecure method called %s in the same class and thus can't be secure!"),
     WRONG_COST_ANNOTATION_TYPE("Wrong type %s in cost annotation, should be a number."),
     AMBIGIOUS_USE("The use of %s is ambigious. It can refer to the following definitions: %s."),
     WRONG_SCHEDULER_ANNOTATION_TYPE("Invalid scheduler expression, should be function invocation of type ABS.Scheduler.Process and first argument of type List<ABS.Scheduler.Process>."),

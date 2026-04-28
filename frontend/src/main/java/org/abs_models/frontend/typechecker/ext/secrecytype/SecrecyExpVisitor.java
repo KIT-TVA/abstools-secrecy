@@ -262,6 +262,16 @@ public class SecrecyExpVisitor {
             List<PureExp> calledParams = functionCall.getParamList();
             int numberOfDefinedParameters = parameterList.getNumChild();
 
+            //TODO check here wether the called method is secure (if the caller is in the same class - ThisExp)
+            Exp caller = functionCall.getCallee();
+            
+            //Check if it's a ThisExp
+            if(caller instanceof ThisExp callerIsThis) {
+                
+                //Add checking if the called method (of the same class) is secure
+                SecrecyAnnotationChecker.checkCalledMethod(functionCall, errors);
+            }
+
             if(numberOfDefinedParameters > 0) {
 
                 for(int i = 0; i < parameterList.getNumChild(); i++) {
