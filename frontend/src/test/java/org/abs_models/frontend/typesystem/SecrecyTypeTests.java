@@ -250,6 +250,7 @@ public class SecrecyTypeTests extends FrontendTest {
         return msg == ErrorMessage.WRONG_SECRECY_ANNOTATION_VALUE ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_FROM_TO ||
                msg == ErrorMessage.SECRECY_LEAKAGE_ERROR_AT_MOST ||
+               msg == ErrorMessage.SECRECY_CALLING_INSECURE_METHOD ||
                msg == ErrorMessage.SECRECY_PARAMETER_TO_HIGH;
     }
 

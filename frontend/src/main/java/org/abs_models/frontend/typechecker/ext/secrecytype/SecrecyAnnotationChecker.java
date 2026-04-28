@@ -272,7 +272,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                 }
             }
         }*/
-       //This should now be replaceable by instead checking each method in the methodList
+        //This should now be replaceable by instead checking each method in the methodList
         for (SecrecyMethod methodToCheck : methodList) {
             if(!methodToCheck.getIsChecked()) {
 
