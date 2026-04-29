@@ -1,10 +1,10 @@
 29:Leakage Error from High: high to Low: low
+35:The call is calling an insecure method called n4 in the same class and thus can't be secure!
 45:Leakage Error from High: IntLiteral(2) to Low: low
 47:Leakage Error from High: high to Low: low
 66:Leakage Error from High: SyncCall(ThisExp(),high) to Low: low
 69:Leakage Error from High: SyncCall(ThisExp(),AddAddExp(high,low)) to Low: low
 81:Leakage Error from High: SyncCall(ThisExp(),high) to Low: low
 83:Leakage Error from High: IntLiteral(7) to Low: low
-94:Leakage Error from High: high to Low: low
-35:The call is calling an insecure method called n4 in the same class and thus can't be secure!
 90:The call is calling an insecure method called n9 in the same class and thus can't be secure!
+94:Leakage Error from High: high to Low: low

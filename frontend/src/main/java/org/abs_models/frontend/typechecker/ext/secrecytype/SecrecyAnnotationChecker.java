@@ -14,6 +14,7 @@ import org.abs_models.frontend.analyser.ErrorMessage;
 import org.abs_models.frontend.analyser.TypeError;
 import org.abs_models.frontend.ast.*;
 import org.abs_models.frontend.analyser.SemanticConditionList;
+import org.abs_models.frontend.analyser.SemanticCondition;
 /**
  * This class is using two phases which both run over the model. 
  * The first phase extracts the secrecy annotations and their level, as well as running a few basic checks.
@@ -24,10 +25,10 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Stores all methods for each class and information about if they are already checked and/or if they held (were secure).
      */
-    private static LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
+    private LinkedList<SecrecyMethod> methodList = new LinkedList<SecrecyMethod>();
 
     //TODO this is so that we can create a list of methods that call other methods
-    private static LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
 
     /**
      * Stores mappings between ASTNode's (declarations) and the assigned secrecy values.
@@ -45,14 +46,12 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     /**
      * Visitor for statements that performs typechecking for the secrecy rules.
      */
-    private static SecrecyStmtVisitor visitor;               
+    private SecrecyStmtVisitor visitor;               
 
     /**
      * List holds entries for confidentiality levels if evaluated at a point in time it is the current secrecylevel. 
      */
     private LinkedList<ProgramCountNode> programConfidentiality;
-    
-    protected static Model model;
 
     /**
      * The constructor for the SecrecyAnnotationChecker a class that checks a given model.
@@ -61,7 +60,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
     protected SecrecyAnnotationChecker(Model m) {
         super(m);
 
-        model = m;
+        //model = m;TODO remove
         programConfidentiality = new LinkedList<ProgramCountNode>();
 
         if (m.secrecyLatticeStructure != null) {
@@ -84,7 +83,7 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
 
         firstExtractionPhasePass(model); 
 
-        visitor = new SecrecyStmtVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality);
+        visitor = new SecrecyStmtVisitor(model, _secrecy, secrecyLatticeStructure, errors, programConfidentiality, methodsCallingOthers);
 
         secondTypecheckPhasePass(model); 
         
@@ -148,11 +147,6 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
                         for (MethodImpl method : classDecl.getMethods()) {
 
                             methodList.add(new SecrecyMethod(classDecl, method));
-                            
-//                            if (method.getMethodSig() == null) {
-//                                return;
-//                            }
-//
                             MethodSig methodSigNat = method.getMethodSig();
 
                             //3.1
@@ -312,12 +306,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
 
             if(found.getIsChecked() && (!found.getIsSecure())) {
-                //add the type error in this case 
-               errors.add(new TypeError(called.getMethodCall(), ErrorMessage.SECRECY_CALLING_INSECURE_METHOD, called.getMethodImpl().getMethodSig().getName()));
+               errors.addSortedByLine(new TypeError(called.getMethodCall(), ErrorMessage.SECRECY_CALLING_INSECURE_METHOD, called.getMethodImpl().getMethodSig().getName()));
             }
         }
-        System.out.println(methodsCallingOthers);
-        System.out.println(methodsCallingOthers.size());
     }
 
     /**
@@ -432,74 +423,9 @@ public class SecrecyAnnotationChecker extends DefaultTypeSystemExtension {
             }
         }
     }
-
-    public static void checkCalledMethod (Call functionCall, SemanticConditionList errors) {
-
-        MethodSig inMethod = functionCall.getMethodSig();
-
-        ClassDecl parentClass = findImplementingClass(inMethod);
-
-        if (parentClass == null) {
-            return;
-        }
-
-        MethodImpl calledMethodImpl = null;
-
-        for (MethodImpl method : parentClass.getMethods()) {
-            if(method.getMethodSig() == inMethod) {
-                calledMethodImpl = method;
-                //System.out.println("Method is " + method);
-                break;
-            }
-        }
-        
-        if(calledMethodImpl == null) {
-            return;
-        }
-
-        SecrecyMethod key = new SecrecyMethod(parentClass, calledMethodImpl);
-        SecrecyMethod found = null;
-
-        for (SecrecyMethod sm : methodList) {
-            if (sm.equals(key)) {
-                found = sm; // This is the actual instance from your list
-                break;
-            }
-        }
-
-        if(!found.getIsChecked()) {
-            //TODO instead of analysing the method here add it to the waitlist
-            methodsCallingOthers.add(new CalledMethod(parentClass, functionCall, calledMethodImpl));
-            return;
-        }
-
-        if(!found.getIsSecure()) {
-            errors.add(new TypeError(functionCall, ErrorMessage.SECRECY_CALLING_INSECURE_METHOD, calledMethodImpl.getMethodSig().getName()));
-        }
-        
-    }
-
-
-    public static ClassDecl findImplementingClass (MethodSig inMethod) {
-
-        ClassDecl result = null;
-
-        for (CompilationUnit cu : model.getCompilationUnits()) {
-            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
-                for (Decl decl : moduleDecl.getDecls()) {
-                    if (decl instanceof ClassDecl classDecl) {
-                        result = classDecl;
-                        for (MethodImpl method : classDecl.getMethods()) {
-                            if(inMethod == method.getMethodSig()) {
-                                return result;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        return null;
+    
+    public static void addCalledMethod(ClassDecl parentClass, Call functionCall, MethodImpl calledMethodImpl, LinkedList<CalledMethod> methodsCallingOthers) {
+        methodsCallingOthers.add(new CalledMethod(parentClass, functionCall, calledMethodImpl));
     }
 
 }

@@ -45,6 +45,9 @@ public class SecrecyStmtVisitor {
      */
     private final SemanticConditionList errors;
 
+    private Model m;
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
+
     /**
      * Constructor for the SecrecyStmtVisitor.
      * @param _secrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
@@ -52,13 +55,15 @@ public class SecrecyStmtVisitor {
      * @param errors - the error list that we can add typeerrors to.
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      */
-    public SecrecyStmtVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality) {
+    public SecrecyStmtVisitor(Model m, HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors,LinkedList<ProgramCountNode> programConfidentiality, LinkedList<CalledMethod> methodsCallingOthers) {
+        this.m = m;
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
+        this.methodsCallingOthers = methodsCallingOthers;
 
-        ExpVisitor = new SecrecyExpVisitor(_secrecy, secrecyLatticeStructure, errors, programConfidentiality, this);
+        ExpVisitor = new SecrecyExpVisitor(m, _secrecy, secrecyLatticeStructure, errors, programConfidentiality, this, methodsCallingOthers);
     }
 
     /**

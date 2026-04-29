@@ -46,6 +46,9 @@ public class SecrecyExpVisitor {
      */
     private final SemanticConditionList errors;
 
+    private Model m;
+    private LinkedList<CalledMethod> methodsCallingOthers = new LinkedList<CalledMethod>();
+
     /**
      * Constructor for the secrecy expression visitor that retrieves the secrecyvalues of different expressions.
      * @param _secrecy - the hashmap that links ASTNode's to their assigned secrecylevel.
@@ -53,12 +56,14 @@ public class SecrecyExpVisitor {
      * @param programConfidentiality - the list for the confidentiality at a certain point in time.
      * @param stmtVisitor - the visitor that called this so that we can visit statements with it.
      */
-    public SecrecyExpVisitor(HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor) {
+    public SecrecyExpVisitor(Model m, HashMap<ASTNode<?>,String> _secrecy, SecrecyLatticeStructure secrecyLatticeStructure, SemanticConditionList errors, LinkedList<ProgramCountNode> programConfidentiality, SecrecyStmtVisitor stmtVisitor, LinkedList<CalledMethod> methodsCallingOthers) {
+        this.m = m;
         this._secrecy = _secrecy;
         this.secrecyLatticeStructure = secrecyLatticeStructure;
         this.errors = errors;
         this.programConfidentiality = programConfidentiality;
         this.stmtVisitor = stmtVisitor;
+        this.methodsCallingOthers = methodsCallingOthers;
     }
 
     /**
@@ -186,8 +191,15 @@ public class SecrecyExpVisitor {
             //Check if it's a ThisExp
             if(caller instanceof ThisExp callerIsThis) {
                 
-                //Add checking if the called method (of the same class) is secure
-                SecrecyAnnotationChecker.checkCalledMethod(functionCall, errors);
+                //Get the declaring class
+                ClassDecl implementingClass = findImplementingClassHelper(m, calledMethod);
+                //
+                if (implementingClass != null) {
+                    MethodImpl calledMethodImpl = findMethodImpl(implementingClass, calledMethod);
+                    if (calledMethodImpl != null) {
+                        SecrecyAnnotationChecker.addCalledMethod(implementingClass, functionCall, calledMethodImpl, methodsCallingOthers);
+                    }
+                }
             }
 
             if(numberOfDefinedParameters > 0) {
@@ -249,6 +261,35 @@ public class SecrecyExpVisitor {
         }
 
         return secrecyLatticeStructure.getMinSecrecyLevel();
+    }
+
+    private ClassDecl findImplementingClassHelper (Model m, MethodSig inMethod) {
+
+        ClassDecl result = null;
+
+        for (CompilationUnit cu : m.getCompilationUnits()) {
+            for (ModuleDecl moduleDecl : cu.getModuleDecls()) {
+                for (Decl decl : moduleDecl.getDecls()) {
+                    if (decl instanceof ClassDecl classDecl) {
+                        result = classDecl;
+                        for (MethodImpl method : classDecl.getMethods()) {
+                            if(inMethod == method.getMethodSig()) {
+                                return result;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private MethodImpl findMethodImpl(ClassDecl parentClass, MethodSig inMethod) {
+        for (MethodImpl method : parentClass.getMethods()) {
+            if (method.getMethodSig() == inMethod) return method;
+        }
+        return null;
     }
 
     /**

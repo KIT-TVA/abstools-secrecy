@@ -75,6 +75,33 @@ public class SemanticConditionList implements Iterable<SemanticCondition> {
         return contents.add(e);
     }
 
+    public boolean addSortedByLine(TypeCheckerException e) {
+        containsErrors = true;
+        int insertIndex = contents.size(); // default: append at end
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.get(i).getLine() > e.getTypeError().getLine()) {
+                insertIndex = i;
+                break;
+            }
+        }
+        contents.add(insertIndex, e.getTypeError());
+        return true;
+    }
+
+    public boolean addSortedByLine(SemanticCondition e) {
+        if (e.isError()) containsErrors = true;
+        if (e.isWarning()) containsWarnings = true;
+        int insertIndex = contents.size(); // default: append at end
+        for (int i = 0; i < contents.size(); i++) {
+            if (contents.get(i).getLine() > e.getLine()) {
+                insertIndex = i;
+                break;
+            }
+        }
+        contents.add(insertIndex, e);
+        return true;
+    }
+
     public boolean addAll(SemanticConditionList l) {
         if (!containsErrors) containsErrors = l.containsErrors();
         if (!containsWarnings) containsWarnings = l.containsWarnings();
